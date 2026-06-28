@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#ffffff" />
+  <title>Lijst Complicaties Heelkunde</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="icon" href="assets/LCHlogo.png" />
+  <!-- Home-screen tegel: zelfde gepadde icoon als de iOS-app -->
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-title" content="LCH" />
+</head>
+<body>
+  <!-- Vaste navigatiebalk -->
+  <header id="navbar">
+    <button id="nav-left" class="nav-btn" type="button"></button>
+    <h1 id="nav-title"></h1>
+    <div id="nav-right" class="nav-right"></div>
+  </header>
+
+  <!-- Hier wordt het actieve scherm gerenderd -->
+  <main id="screen"></main>
+
+  <!-- Toast / kopieer-melding -->
+  <div id="toast" class="toast" hidden></div>
+
+  <!-- Modale popups (CodeGraph etc.) -->
+  <div id="modal-backdrop" class="modal-backdrop" hidden>
+    <div id="modal" class="modal"></div>
+  </div>
+
+  <!-- Volgorde is van belang: util → data → views → app -->
+  <script src="js/util.js"></script>
+  <script src="js/icons.js"></script>
+  <script src="js/swipe.js"></script>
+  <script src="js/highlight.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/views/menu.js"></script>
+  <script src="js/views/complocaties.js"></script>
+  <script src="js/views/codes.js"></script>
+  <script src="js/views/structuur.js"></script>
+  <script src="js/views/matrix.js"></script>
+  <script src="js/views/detail.js"></script>
+  <script src="js/views/info.js"></script>
+  <script src="js/views/help.js"></script>
+  <script src="js/views/feedback.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

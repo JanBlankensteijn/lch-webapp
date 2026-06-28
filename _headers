@@ -1,0 +1,5 @@
+# Cloudflare Pages headers.
+# HTML/CSS/JS altijd laten hervalideren zodat een nieuwe deploy meteen zichtbaar is
+# (de bestandsnamen hebben geen hash, dus zonder dit kan de browser oude versies cachen).
+/*
+  Cache-Control: no-cache
