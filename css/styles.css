@@ -219,9 +219,12 @@ input.search, input.text {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 3px; font-size: 11px; font-family: inherit;
 }
-/* Op desktop (muis): knoppen onthullen bij hover */
+/* Op desktop (muis): GEEN regel-verschuiving — actieknoppen faden in bij hover.
+   (Swipe blijft alleen voor touch; muis-systemen onthullen acties met hover.) */
 @media (hover: hover) and (pointer: fine) {
-  .list li.swipe:hover .swipe-content { transform: translateX(calc(-1 * var(--sw, 0px))); }
+  .list li.swipe .swipe-actions { opacity: 0; transition: opacity .12s ease; pointer-events: none; }
+  .list li.swipe:hover .swipe-actions { opacity: 1; z-index: 2; pointer-events: auto; }
+  .list li.swipe .swipe-content { transition: none; }
 }
 
 /* ===== Codes segmented ===== */
