@@ -222,9 +222,15 @@ input.search, input.text {
 /* Op desktop (muis): GEEN regel-verschuiving — actieknoppen faden in bij hover.
    (Swipe blijft alleen voor touch; muis-systemen onthullen acties met hover.) */
 @media (hover: hover) and (pointer: fine) {
-  .list li.swipe .swipe-actions { opacity: 0; transition: opacity .12s ease; pointer-events: none; }
+  /* acties faden in, ingeschoven zodat folder + chevron rechts vrij/klikbaar blijven */
+  .list li.swipe .swipe-actions {
+    opacity: 0; transition: opacity .12s ease; pointer-events: none; right: 64px;
+  }
   .list li.swipe:hover .swipe-actions { opacity: 1; z-index: 2; pointer-events: auto; }
   .list li.swipe .swipe-content { transition: none; }
+  /* folder-badge + chevron boven de actie-overlay houden en klikbaar laten */
+  .list li.swipe .swipe-content .cluster-folder,
+  .list li.swipe .swipe-content > .svg-ic:last-child { position: relative; z-index: 3; }
 }
 
 /* ===== Codes segmented ===== */
