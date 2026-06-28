@@ -184,7 +184,7 @@ input.search, input.text {
 .cluster-folder { position: relative; width: 24px; height: 24px; flex-shrink: 0; }
 .cluster-folder .badge {
   position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-  color: #fff; font-size: 10px; font-weight: 700; transform: translateY(3px);
+  color: #fff; font-size: 10px; font-weight: 700; transform: translateY(1px);
 }
 .child-row { background: var(--zachtGrijs); padding-left: 30px; }
 .child-row .clip { color: var(--gray); margin-right: 6px; }
