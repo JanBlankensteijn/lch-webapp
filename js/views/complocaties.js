@@ -73,7 +73,7 @@
   }
 
   LCH.views.complocaties = function () {
-    var state = { search: "", onlyActive: true, excluded: [], expanded: {}, showUnfiltered: false };
+    var state = { search: "", onlyActive: true, excluded: [], expanded: {}, showUnfiltered: false, showHint: false };
 
     var root = el("div");
 
@@ -104,12 +104,35 @@
       ])
     ]);
 
+    var hintBar = el("div");
     var excludeBar = el("div");
     var listArea = el("div");
 
     root.appendChild(header);
+    root.appendChild(hintBar);
     root.appendChild(excludeBar);
     root.appendChild(listArea);
+
+    var hintTimer = null;
+    function renderHint(visible, hasClusters) {
+      hintBar.innerHTML = "";
+      // zoals iOS: lampje alleen tonen als de lijst zichtbaar is en er clusters zijn
+      if (!visible || !hasClusters) return;
+      var lamp = el("button", { class: "iconbtn hintbtn", title: "Tip", style: "padding:4px" }, [
+        LCH.icon("lightbulb", { color: "var(--orange)", size: 22 })
+      ]);
+      var row = el("div", { style: "display:flex;align-items:center;gap:6px;padding:4px 14px" }, [lamp]);
+      if (state.showHint) {
+        row.appendChild(el("span", { class: "hinttext", text: "Veeg een item of cluster naar links (of houd de muis erboven) om uit te sluiten of te isoleren." }));
+      }
+      lamp.addEventListener("click", function () {
+        state.showHint = !state.showHint;
+        if (hintTimer) clearTimeout(hintTimer);
+        if (state.showHint) hintTimer = setTimeout(function () { state.showHint = false; render(); }, 5000);
+        render();
+      });
+      hintBar.appendChild(row);
+    }
 
     // Actie-specs voor swipe (oranje uitsluiten, groen isoleren) — zoals iOS .swipeActions
     function excludeAction(codes) {
@@ -167,6 +190,9 @@
       subcount.textContent = clusters.length + " clusters, " + singles.length + " enkel";
 
       clearBtn.style.visibility = state.search ? "visible" : "hidden";
+
+      // hint-lampje (zoals iOS): alleen als de lijst zichtbaar is, er clusters zijn en geen uitsluitingen
+      renderHint((state.showUnfiltered || state.search !== "") && state.excluded.length === 0, clusters.length > 0);
 
       // exclude bar
       excludeBar.innerHTML = "";
