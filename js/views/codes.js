@@ -27,7 +27,7 @@
   }
 
   LCH.views.codes = function () {
-    var state = { type: "GRP", search: "" };
+    var state = { type: "GRP", search: "", showHint: false };
     var root = el("div");
 
     var seg = el("div", { class: "segmented" });
@@ -54,9 +54,32 @@
       counter
     ]);
 
+    var hintBar = el("div");
     var listArea = el("div");
     root.appendChild(header);
+    root.appendChild(hintBar);
     root.appendChild(listArea);
+
+    // hint-lampje (zoals CompLOCaties): oranje gloeilamp + tooltip
+    var hintTimer = null;
+    function renderHint(visible) {
+      hintBar.innerHTML = "";
+      if (!visible) return;
+      var lamp = el("button", { class: "iconbtn hintbtn", title: "Tip", style: "padding:4px" }, [
+        LCH.icon("lightbulb", { color: "var(--orange)", size: 22 })
+      ]);
+      var row = el("div", { style: "display:flex;align-items:center;gap:6px;padding:4px 14px" }, [lamp]);
+      if (state.showHint) {
+        row.appendChild(el("span", { class: "hinttext", text: "Veeg item naar links voor Structuur filter of feedback" }));
+      }
+      lamp.addEventListener("click", function () {
+        state.showHint = !state.showHint;
+        if (hintTimer) clearTimeout(hintTimer);
+        if (state.showHint) hintTimer = setTimeout(function () { state.showHint = false; render(); }, 5000);
+        render();
+      });
+      hintBar.appendChild(row);
+    }
 
     function render() {
       titel.textContent = TITELS[state.type];
@@ -64,6 +87,9 @@
       var filtered = filterCodes(all, state.search);
       counter.textContent = filtered.length + " van " + all.length + " codes";
       clearBtn.style.visibility = state.search ? "visible" : "hidden";
+
+      // lampje alleen tonen als er resultaten in de lijst staan
+      renderHint(filtered.length > 0);
 
       listArea.innerHTML = "";
       if (!filtered.length) {
@@ -94,6 +120,7 @@
           } });
         }
         ul.appendChild(LCH.makeSwipeRow({
+          extraClass: "code-row",
           content: [
             el("span", { class: "code-tag", text: item.Code }),
             LCH.hlNode(item.Tekst, state.search, { class: "grow" })

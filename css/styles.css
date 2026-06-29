@@ -250,8 +250,15 @@ input.search, input.text {
   padding: 1px 4px; flex-shrink: 0; white-space: nowrap;
 }
 
+/* Codes-rijen: code-blokje bovenaan uitlijnen met de eerste tekstregel
+   (i.p.v. verticaal gecentreerd) — zoals de iOS-bron */
+.list li.swipe.code-row .swipe-content { align-items: flex-start; }
+.list li.swipe.code-row .code-tag { margin-top: 1px; }
+
 /* ===== Structuur ===== */
-.struct-item .codes { font-size: 12px; color: var(--gray); margin-top: 3px; }
+/* Structuur-rij: omschrijving vet/donker, code+aantal lichter grijs (zoals iOS-bron) */
+.struct-item { font-weight: 700; color: #1c1c1e; }
+.codes { font-size: 12px; color: var(--gray); margin-top: 3px; }
 
 /* ===== Pulldown (GRP-filter) ===== */
 .pulldown-label {
