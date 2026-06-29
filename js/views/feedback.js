@@ -3,8 +3,8 @@
   "use strict";
   var el = LCH.el;
 
-  // Zelfde endpoint als de iOS-app
-  var WEBHOOK = "https://webhook.site/2f4562ec-11b3-4ef8-9280-a1cf8d1cec77";
+  // Eigen Cloudflare Worker: ontvangt de feedback en mailt die naar Jan's Gmail.
+  var WEBHOOK = "https://lch-feedback.janblankensteijn.workers.dev";
 
   var CATEGORIEEN = ["UX", "Inhoud", "Fout", "Overig"];
   var SCHERMEN = ["Hoofdmenu", "Complicaties", "Codes", "Structuur", "Matrix", "Feedback", "Details", "Info", "Help"];
@@ -73,7 +73,8 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
         mode: "cors"
-      }).then(function () {
+      }).then(function (response) {
+        if (!response.ok) { throw new Error("HTTP " + response.status); }
         statusLine.className = "success"; statusLine.textContent = "✅ Feedback verzonden";
         textarea.value = ""; state.feedback = ""; state.verzender = ""; verzender.value = "";
         state.categorie = "UX"; updateSeg(); renderCond();
