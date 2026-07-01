@@ -24,10 +24,17 @@
     return fetch(url, { cache: "no-store", credentials: "include" })
       .then(function (r) {
         if (r.status === 401 || r.status === 403) {
-          throw new Error("Geen toegang — log in met een gemachtigd account.");
+          var status = r.status;
+          return r.json().then(function (b) { return b; }, function () { return {}; })
+            .then(function (body) {
+              var e = new Error(status === 403 ? "Geen toegang" : "Niet ingelogd");
+              if (status === 403) { e.noAccess = true; e.email = (body && body.email) || ""; }
+              else { e.sessieVerlopen = true; }
+              throw e;
+            });
         }
         if (!r.ok) throw new Error("HTTP " + r.status);
-        return r.json(); // platte JSON uit R2 (geen decryptie meer)
+        return r.json(); // platte JSON uit KV (geen decryptie meer)
       })
       .then(function (wrapper) {
         var m = LCH.model;

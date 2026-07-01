@@ -52,7 +52,8 @@ export async function onRequestGet(context) {
 
   const registries = await registriesVoorEmail(env, email)
   if (registries.length === 0) {
-    return json({ error: 'geen registratie voor dit account' }, 403)
+    // E-mail meesturen zodat de app een nette "vraag toegang aan"-melding kan tonen.
+    return json({ error: 'geen_toegang', email }, 403)
   }
 
   // ?registry=LCP kiest expliciet; anders de eerste waartoe de gebruiker toegang heeft.

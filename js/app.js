@@ -134,6 +134,31 @@
     }).catch(function (err) {
       clearInterval(timer);
       loading.textContent = "";
+
+      // Geen toegang (403): nette melding + "Toegang aanvragen" (mailto).
+      if (err && err.noAccess) {
+        var wie = err.email ? LCH.escapeHtml(err.email) : "dit account";
+        var mailto = "mailto:toegang@cxreg.dev?subject=" +
+          encodeURIComponent("Toegang CxView aanvragen") + "&body=" +
+          encodeURIComponent("Ik wil graag toegang tot de lijst. Mijn e-mailadres: " + (err.email || ""));
+        errorBox.innerHTML =
+          "🔒 <b>Geen toegang</b><br><br>" +
+          "Je account (" + wie + ") heeft nog geen toegang tot deze lijst.<br><br>" +
+          'Vraag toegang aan via <a href="' + mailto + '">toegang@cxreg.dev</a>.' +
+          '<br><br><a class="btn-primary" style="display:inline-block;text-decoration:none" href="' +
+          mailto + '">Toegang aanvragen</a>';
+        return;
+      }
+
+      // Sessie verlopen (401): herladen om opnieuw in te loggen.
+      if (err && err.sessieVerlopen) {
+        errorBox.innerHTML = "🔑 <b>Sessie verlopen</b><br><br>Herlaad de pagina om opnieuw in te loggen.";
+        var herlaad = el("button", { class: "btn-primary", style: "margin-top:14px", text: "Herladen", onclick: function () { location.reload(); } });
+        errorBox.appendChild(herlaad);
+        return;
+      }
+
+      // Overige fouten: netwerk e.d.
       errorBox.innerHTML = "❌ Laden mislukt: " + LCH.escapeHtml(err.message || String(err)) +
         "<br><br>Controleer je internetverbinding.";
       var retry = el("button", { class: "btn-primary", style: "margin-top:14px", text: "Opnieuw proberen", onclick: showStartup });
