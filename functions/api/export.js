@@ -35,8 +35,17 @@ async function registriesVoorEmail(env, email) {
 export async function onRequestGet(context) {
   const { request, env } = context
 
-  // Identiteit uit de geverifieerde Cloudflare Access-JWT (cookie CF_Authorization
-  // of header Cf-Access-Jwt-Assertion). Niet uit een los door te sturen header.
+  // Slot 1 — host-check: serveer alleen op het Access-beschermde domein. Dezelfde
+  // Function draait óók op de onbeschermde *.pages.dev; daar geven we niets terug.
+  // (Naast, niet in plaats van, de JWT-verificatie hieronder.)
+  const host = new URL(request.url).hostname
+  const isDev = host === 'localhost' || host === '127.0.0.1'
+  if (!isDev && host !== 'cxview.cxreg.dev') {
+    return json({ error: 'niet beschikbaar' }, 404)
+  }
+
+  // Slot 2 — identiteit uit de geverifieerde Cloudflare Access-JWT (cookie
+  // CF_Authorization of header Cf-Access-Jwt-Assertion), niet uit een los header.
   const email = await emailFromAccess(request, env)
 
   if (!email) return json({ error: 'niet ingelogd' }, 401)
