@@ -92,16 +92,23 @@ function json(obj, status) {
 // + aud + iss + exp en lezen de e-mail. Verificatie is nodig omdat de Functions
 // óók op de onbeschermde lch-webapp.pages.dev draaien; een los door te sturen
 // header/JWT zou daar spoofbaar zijn.
-const TEAM_DOMAIN = 'https://lch-users.cloudflareaccess.com'
+// Toegestane Access-issuers (team-domeinen). Beide tijdens de hernoem-overgang
+// van lch-users → cxreg; de oude mag eruit zodra de rename definitief is.
+const ALLOWED_ISSUERS = new Set([
+  'https://lch-users.cloudflareaccess.com',
+  'https://cxreg.cloudflareaccess.com',
+])
 const APP_AUD = '37a8525d838bd7d05001622ab2ad3ea62537ecb8d0117060114efedf5c6c98c5'
 
-let _jwks = null
-async function accessKeys() {
-  if (_jwks) return _jwks
-  const resp = await fetch(`${TEAM_DOMAIN}/cdn-cgi/access/certs`)
+// Certs per issuer cachen — elk team-domein serveert zijn eigen JWKS.
+const _jwksByIss = new Map()
+async function accessKeys(iss) {
+  if (_jwksByIss.has(iss)) return _jwksByIss.get(iss)
+  const resp = await fetch(`${iss}/cdn-cgi/access/certs`)
   const data = await resp.json()
-  _jwks = data.keys || []
-  return _jwks
+  const keys = data.keys || []
+  _jwksByIss.set(iss, keys)
+  return keys
 }
 
 function b64urlBytes(s) {
@@ -144,11 +151,11 @@ async function verifyAccessJwt(token) {
     const now = Math.floor(Date.now() / 1000)
     if (payload.exp && now >= payload.exp) return null
     if (payload.nbf && now < payload.nbf) return null
-    if (payload.iss && payload.iss !== TEAM_DOMAIN) return null
+    if (!payload.iss || !ALLOWED_ISSUERS.has(payload.iss)) return null
     const auds = Array.isArray(payload.aud) ? payload.aud : [payload.aud]
     if (!auds.includes(APP_AUD)) return null
 
-    const jwk = (await accessKeys()).find((k) => k.kid === header.kid)
+    const jwk = (await accessKeys(payload.iss)).find((k) => k.kid === header.kid)
     if (!jwk) return null
     const key = await crypto.subtle.importKey(
       'jwk', jwk,
