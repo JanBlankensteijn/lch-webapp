@@ -40,23 +40,48 @@
         var m = LCH.model;
         m.metadata = wrapper.metadata;
         var prefix = wrapper.metadata.ExportPrefix || "";
+        var src = wrapper.data || [];
 
-        var items = wrapper.data || [];
-        items.forEach(function (item) {
-          if (prefix && item.CxTekst && item.CxTekst.indexOf(prefix) === 0) {
-            item.CxTekst = item.CxTekst.slice(prefix.length).trim();
+        // Bewuste, COSMETISCHE laadtijd (port van de 1 ms/item-vertraging in
+        // LCHModel.swift): zonder dit flitst het laden voorbij. We verwerken de
+        // items in blokjes met een korte pauze en updaten loadProgress geleidelijk,
+        // i.p.v. direct naar 100% te springen. ~COSMETIC_MS totaal, ongeacht #items.
+        var COSMETIC_MS = 1500;
+        var TICKS = 45;
+        var DELAY = COSMETIC_MS / TICKS;               // ~33 ms per blokje
+        var CHUNK = Math.max(1, Math.ceil(src.length / TICKS));
+        var total = src.length || 1;
+
+        return new Promise(function (resolve) {
+          var items = [];
+          var i = 0;
+          function stap() {
+            var end = Math.min(i + CHUNK, src.length);
+            for (; i < end; i++) {
+              var item = src[i];
+              if (prefix && item.CxTekst && item.CxTekst.indexOf(prefix) === 0) {
+                item.CxTekst = item.CxTekst.slice(prefix.length).trim();
+              }
+              items.push(item);
+            }
+            m.loadProgress = i / total;
+            if (onProgress) onProgress(m.loadProgress);
+            if (i < src.length) {
+              setTimeout(stap, DELAY);
+            } else {
+              m.allItems = items;
+              m.grpItems = wrapper.GRP || [];
+              m.comItems = wrapper.COM || [];
+              m.srtItems = wrapper.SRT || [];
+              m.spcItems = wrapper.SPC || [];
+              m.locItems = wrapper.LOC || [];
+              m.loadProgress = 1;
+              if (onProgress) onProgress(1);
+              resolve(m);
+            }
           }
+          stap();
         });
-
-        m.allItems = items;
-        m.grpItems = wrapper.GRP || [];
-        m.comItems = wrapper.COM || [];
-        m.srtItems = wrapper.SRT || [];
-        m.spcItems = wrapper.SPC || [];
-        m.locItems = wrapper.LOC || [];
-        m.loadProgress = 1;
-        if (onProgress) onProgress(1);
-        return m;
       });
   };
 

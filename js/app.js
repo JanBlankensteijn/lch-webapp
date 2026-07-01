@@ -112,14 +112,19 @@
     screen.innerHTML = "";
     screen.appendChild(node);
 
-    // Schijnbare voortgang tot ~90%, daarna 100% bij voltooiing
-    var p = 0;
+    // Lichte creep tijdens de (snelle) fetch; zodra de cosmetische inlees-progress
+    // binnenkomt (data.js) neemt die het over en volgt de balk de echte voortgang.
+    var p = 0, fetching = true;
     var timer = setInterval(function () {
-      p = Math.min(0.9, p + 0.04);
+      if (!fetching) return;
+      p = Math.min(0.15, p + 0.02);
       bar.style.width = (p * 100) + "%";
-    }, 120);
+    }, 100);
 
-    LCH.loadData().then(function (m) {
+    LCH.loadData(function (frac) {
+      fetching = false;
+      bar.style.width = Math.round(Math.max(0.15, frac) * 100) + "%";
+    }).then(function (m) {
       clearInterval(timer);
       bar.style.width = "100%";
       count.textContent = "✅ " + m.allItems.length + " ingelezen records";
