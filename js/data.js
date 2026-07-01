@@ -1,12 +1,14 @@
-/* Data-laag: laadt en ontsleutelt de LCH-database van GitHub.
- * Port van LCHModel.swift (XOR-decryptie + ExportPrefix strippen).
+/* Data-laag: laadt de registratie-export van het same-origin /api/export
+ * (Pages Function → R2, achter Cloudflare Access). Platte JSON, geen decryptie.
+ * ExportPrefix wordt nog wel gestript (port van LCHModel.swift).
  */
 (function (LCH) {
   "use strict";
 
-  // Zelfde bron en wachtwoord als de iOS-app (Secrets.plist).
-  var DATA_URL = "https://raw.githubusercontent.com/JanBlankensteijn/CxReg/main/LCH/LCH_encrypted.json";
-  var PASSWORD = "LCH#iOSKey@99";
+  // Same-origin data-endpoint (Pages Function, achter Cloudflare Access).
+  // De Access-cookie rijdt vanzelf mee; géén sleutel/token in de client.
+  // Was: publieke raw-GitHub-URL + XOR-"encryptie" (sleutel stond in deze JS).
+  var DATA_URL = "/api/export";
 
   // Gedeelde applicatiestate (equivalent van LCHModel)
   LCH.model = {
@@ -17,29 +19,17 @@
     filter: null // { type, code }
   };
 
-  function xorDecrypt(bytes, password) {
-    var pw = new TextEncoder().encode(password);
-    var out = new Uint8Array(bytes.length);
-    for (var i = 0; i < bytes.length; i++) out[i] = bytes[i] ^ pw[i % pw.length];
-    return out;
-  }
-
   LCH.loadData = function (onProgress) {
-    var url = DATA_URL + "?" + Date.now(); // cache-buster, net als de iOS-app
-    return fetch(url, { cache: "no-store" })
+    var url = DATA_URL + "?t=" + Date.now(); // cache-buster
+    return fetch(url, { cache: "no-store", credentials: "include" })
       .then(function (r) {
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        return r.arrayBuffer();
-      })
-      .then(function (buf) {
-        var decrypted = xorDecrypt(new Uint8Array(buf), PASSWORD);
-        // BOM strippen
-        if (decrypted[0] === 0xEF && decrypted[1] === 0xBB && decrypted[2] === 0xBF) {
-          decrypted = decrypted.subarray(3);
+        if (r.status === 401 || r.status === 403) {
+          throw new Error("Geen toegang — log in met een gemachtigd account.");
         }
-        var text = new TextDecoder("utf-8").decode(decrypted).trim();
-        var wrapper = JSON.parse(text);
-
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json(); // platte JSON uit R2 (geen decryptie meer)
+      })
+      .then(function (wrapper) {
         var m = LCH.model;
         m.metadata = wrapper.metadata;
         var prefix = wrapper.metadata.ExportPrefix || "";
